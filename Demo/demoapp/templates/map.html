@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map Location</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enter Location</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Show Location</button>
+    </form>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map with default center
+        var defaultLat = 18.5107;
+        var defaultLng = 73.8525;
+        var map = L.map('map').setView([defaultLat, defaultLng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Retrieve latitude and longitude from Django context and parse them
+        var lat = JSON.parse('{{ latitude|default:"null"|escapejs }}');
+        var lng = JSON.parse('{{ longitude|default:"null"|escapejs }}');
+
+        // Ensure values are valid numbers
+        if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+            lat = parseFloat(lat);
+            lng = parseFloat(lng);
+            map.setView([lat, lng], 15);
+            L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup('<b>Location</b>');
+        } else {
+            // Add a default marker if no valid coordinates are provided
+            L.marker([defaultLat, defaultLng])
+                .addTo(map)
+                .bindPopup('<b>Default Location</b>');
+        }
+    </script>
+</body>
+</html>
